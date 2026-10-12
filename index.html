@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Замер here, there, this, that, these, those для уровня A1 в три ступени: сам, с подсказкой, выбор. С режимом учителя для проверки свободных ответов.">
+<title>Замер · this, that, here, there</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EBECE7; --card:#FCFCFA; --ink:#1A2028;
+  --stamp:#1F4E8C; --gold:#B0810F; --terra:#B4562F;
+  --teal:#2A6B78; --ok:#2E6B4F; --muted:#5A626B; --slate:#4E5A66; --plum:#6B4A7A;
+  --line:rgba(26,32,40,.14);
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 70px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+header{padding:30px 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--stamp);display:flex;align-items:center;gap:10px}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,8vw,44px);line-height:1.04;margin:12px 0 0;letter-spacing:-.02em}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:28px 20px 22px;margin-top:18px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:11px;opacity:.5;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Cpath d='M1 11V1h18v8H7V5h8' fill='none' stroke='%231F4E8C' stroke-width='1'/%3E%3C/svg%3E") repeat-x left top}
+.card h2{font-family:var(--display);font-size:22px;font-weight:600;margin:6px 0 10px;letter-spacing:-.01em}
+.card h2:focus{outline:none}
+.card p{margin:0 0 10px}
+.muted{color:var(--muted)}
+
+.steps{display:grid;gap:7px;margin:14px 0 12px;padding:0;list-style:none}
+.steps li{display:flex;gap:11px;align-items:baseline;background:var(--paper);border-radius:4px;padding:9px 12px}
+.steps b{font-family:var(--mono);font-size:12px;color:var(--stamp);flex:none}
+
+.stage{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.stage .part{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--stamp)}
+.stage .num{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--muted);margin-left:auto}
+.bar{height:4px;background:var(--line);border-radius:2px;margin-top:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--stamp)}
+
+.ru{font-size:16.5px;margin:16px 0 0;color:var(--ink)}
+.ctx{font-family:var(--display);font-size:18px;color:var(--muted);margin-top:12px;line-height:1.35}
+.sent{font-family:var(--display);font-size:clamp(21px,5.4vw,27px);font-weight:600;line-height:1.35;margin-top:10px;letter-spacing:-.01em}
+.gap{display:inline-block;min-width:84px;border-bottom:2px solid var(--stamp);margin:0 2px}
+
+.pic{margin-top:16px;background:var(--paper);border-radius:4px;padding:10px 10px 6px}
+.pic svg{display:block;width:100%;max-width:360px;height:auto;margin:0 auto}
+.pic .cap{text-align:center;font-size:13px;color:var(--muted);margin-top:2px}
+.pic .fig{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round}
+.pic .head{fill:var(--card);stroke:var(--ink);stroke-width:2.4}
+.pic .itm{fill:#F2DDA6;stroke:var(--stamp);stroke-width:2}
+.pic .dash{stroke:var(--muted);stroke-width:1.6;stroke-dasharray:4 5;fill:none}
+.pic .arw{stroke:var(--stamp);stroke-width:2.4;fill:none;stroke-linecap:round}
+.pic .lbl{font-family:var(--sans);font-size:12px;fill:var(--muted)}
+
+.answer{margin-top:20px;display:flex;gap:9px;flex-wrap:wrap}
+.answer input{flex:1;min-width:170px;font-family:var(--display);font-size:20px;font-weight:600;color:var(--ink);
+  background:var(--paper);border:1px solid rgba(26,32,40,.32);border-radius:4px;padding:11px 13px}
+.answer input.long{font-size:17px;flex-basis:100%}
+.answer input:focus{outline:2px solid var(--stamp);outline-offset:1px}
+.hint{font-size:13px;color:var(--muted);margin-top:8px}
+
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:20px}
+.opt{font-family:var(--display);font-size:18px;font-weight:600;padding:13px 15px;border:1px solid rgba(26,32,40,.25);
+  background:var(--paper);color:var(--ink);border-radius:4px;cursor:pointer;text-align:left}
+.opt:hover{border-color:var(--ink)}
+.opt:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+
+.row-btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.btn{font-family:var(--sans);font-size:15px;font-weight:500;padding:12px 20px;border-radius:4px;border:1px solid var(--ink);background:var(--ink);color:var(--card);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.quiet{background:transparent;color:var(--muted);border-color:rgba(26,32,40,.25)}
+.btn:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.linkish{background:none;border:none;color:var(--muted);text-decoration:underline;font:inherit;font-size:13.5px;cursor:pointer;padding:6px 0;margin-top:16px}
+.linkish:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+
+/* отчёт */
+.sum{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;padding:5px 10px;border-radius:3px;color:#fff;display:inline-block}
+.v-ok{background:var(--ok)}
+.v-cue{background:var(--teal)}
+.v-avoid{background:var(--plum)}
+.v-retr{background:var(--gold)}
+.v-diff{background:var(--terra)}
+.v-skip{background:var(--slate)}
+.v-unst{background:var(--muted)}
+.v-arg{background:var(--stamp)}
+.tablewrap{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:4px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td .nm{font-weight:600}
+td .free{font-family:var(--display);font-size:15.5px;margin-top:5px;line-height:1.3}
+td .typed{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:3px}
+td .cq{font-size:12.5px;color:var(--terra);margin-top:3px}
+td .note{font-size:12.5px;color:var(--muted);margin-top:3px}
+td .slow{color:var(--terra);font-weight:600}
+td.c{text-align:center;font-family:var(--mono);white-space:nowrap}
+.mk{font-family:var(--mono);font-size:13px;border:1px solid rgba(26,32,40,.3);background:var(--paper);color:var(--ink);border-radius:3px;padding:4px 7px;cursor:pointer;min-width:34px}
+.mk.set{border-color:var(--stamp);color:var(--stamp);font-weight:600}
+.mk:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.vm{display:none;margin-top:7px}
+@media(max-width:560px){
+  th.vc,td.vc{display:none}
+  .vm{display:block}
+  th,td{padding:9px 6px}
+}
+.todo{margin-top:20px}
+.todo h3{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:400;margin:16px 0 6px}
+.todo p{margin:0 0 4px}
+.legend{margin-top:20px;font-size:13.5px;color:var(--muted)}
+.legend p{margin:0 0 7px}
+.legend b{color:var(--ink)}
+.warn{background:rgba(180,86,47,.1);border-left:3px solid var(--terra);padding:9px 12px;margin:8px 0 4px;font-size:14px}
+.tmode{background:rgba(31,78,140,.08);border-left:3px solid var(--stamp);padding:9px 12px;margin:8px 0 4px;font-size:14px}
+details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600}
+summary:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+.keys{margin:10px 0 0;padding-left:20px}
+.keys li{margin-bottom:8px}
+textarea{width:100%;min-height:150px;margin-top:10px;font-family:var(--mono);font-size:12.5px;padding:10px;border:1px solid rgba(26,32,40,.3);border-radius:4px;background:var(--paper);color:var(--ink)}
+textarea:focus{outline:2px solid var(--stamp);outline-offset:1px}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Замер · 27 заданий</div>
+    <h1>this, that,<br>here, there</h1>
+  </header>
+  <main id="app"></main>
+  <p class="sr" role="status" aria-live="polite" id="live"></p>
+  <footer>Ответы по ходу не показываются — это замер, а не тренировка. Правильные ответы появятся в конце.</footer>
+</div>
+
+<script>
+/* ================= развилки =================
+   На каждой ступени развилка проверяет одну и ту же сторону —
+   иначе по расхождению между ступенями нельзя понять, где ломается. */
+const FORKS=[
+ {id:"f1",name:"that",sub:"далеко, один предмет"},
+ {id:"f2",name:"those",sub:"далеко, несколько предметов"},
+ {id:"f3",name:"these + сущ.",sub:"множественное: не this books"},
+ {id:"f4",name:"here",sub:"здесь, сюда — где я"},
+ {id:"f5",name:"there",sub:"там, далеко"},
+ {id:"f6",name:"there без to",sub:"«туда» без предлога"},
+ {id:"f7",name:"that как реакция",sub:"That's OK! · That's great!"},
+ {id:"f8",name:"this week",sub:"без предлога"},
+ {id:"f9",name:"there is",sub:"«есть, имеется»"}
+];
+
+/* ступень 1 — сам: целое предложение, без рамки.
+   target — нужная форма, rival — конкурирующая форма, calques — кальки,
+   arguable — верно по-английски, но обошёл проверяемую форму иначе (решает учитель) */
+const FREE=[
+ {f:"f1",pic:{t:"obj",d:"far",n:1,it:"bag"},
+  ru:"Ты в магазине. Покажи на сумку вдали и скажи, что хочешь её.",
+  model:"I'd like that bag, please.",
+  target:/\bthat\b/,rival:/\b(this|these|those)\b/,tw:["that"],rw:["this","these","those"]},
+ {f:"f2",pic:{t:"both",it:"cup",nn:2,nf:3,pick:"far"},
+  ru:"Покажи на чашки вдали и скажи, что они тебе нравятся.",
+  model:"I like those cups.",
+  target:/\bthose\b/,rival:/\b(this|that|these)\b/,tw:["those"],rw:["this","that","these"],
+  arguable:[{re:/\bthe [a-z]+ (over )?there\b/,note:"the cups over there — верно, но без those"}]},
+ {f:"f3",pic:{t:"both",it:"book",nn:3,nf:2,pick:"near"},
+  ru:"Покажи на книги рядом и скажи, что они новые.",
+  model:"These books are new.",
+  target:/\bthese\b/,rival:/\b(this|that|those)\b/,tw:["these"],rw:["this","that","those"],
+  calques:[{re:/\bthis (books?|ones)\b/,note:"this с множественным числом"}],
+  arguable:[{re:/\bthe [a-z]+ (over )?here\b|\bthe [a-z]+ near me\b/,note:"the books here — верно, но без these"}]},
+ {f:"f4",pic:{t:"call"},
+  ru:"Позови друга к себе.",
+  model:"Come here!",
+  target:/\bhere\b/,rival:/\bthere\b/,tw:["here"],rw:["there"],
+  calques:[{re:/\bto here\b/,note:"калька: «сюда» с предлогом"}],
+  arguable:[{re:/\bto me\b/,note:"«ко мне» — верно, но без here"}]},
+ {f:"f5",pic:{t:"obj",d:"far",n:1,it:"door"},
+  ru:"Друг спрашивает, где выход. Покажи на выход вдали.",
+  ctx:"— Where is the exit?",model:"It's over there.",
+  target:/\bthere\b/,rival:/\bhere\b/,tw:["there"],rw:["here"]},
+ {f:"f6",
+  ru:"Друг показывает на новое кафе. Предложи пойти туда.",
+  ctx:"— Look, a new cafe!",model:"Let's go there!",
+  target:/\b(go|going|went|come|fly|travel|back) there\b|\bthere again\b/,rival:/\b(go|going|come|back) here\b/,tw:["there"],rw:["here"],
+  calques:[{re:/\b(to|in|into|at) there\b/,note:"калька: «туда» с предлогом"}],
+  arguable:[{re:/\bthere\b/,note:"there есть, но не после go — проверялось «поехать туда»"}]},
+ {f:"f7",
+  ru:"Друг опоздал и извиняется. Скажи, что ничего страшного.",
+  ctx:"— Sorry, I'm late!",model:"That's OK!",
+  target:/\bthat('s| is)\b/,tw:["that's","that"],rw:["this"],
+  calques:[{re:/\bthis('s| is)\b|^this\b/,note:"калька: «это нормально» → this is"}],
+  // реакцию носитель и сам часто строит без that (It's OK, No problem), поэтому не штрафуем
+  noPenalty:true},
+ {f:"f8",
+  ru:"Скажи, что на этой неделе работаешь каждый день.",
+  model:"I work every day this week.",
+  target:/\bthis week\b/,rival:/\b(that|these|those) weeks?\b/,tw:["this"],rw:["that","these","those"],
+  calques:[{re:/\b(in|on|at|during) this week\b/,note:"калька: «на этой неделе» с предлогом"}]},
+ {f:"f9",
+  ru:"Скажи, что в парке есть кафе.",
+  model:"There is a cafe in the park.",
+  target:/\bthere('s| is| are|'re)\b/,tw:["there"],rw:[],
+  calques:[{re:/^(it is|it's|is) (a|an)\b|\b(park|city|town) (it is|it's) (a|an)\b/,note:"«есть, имеется» передано через it is"}],
+  arguable:[{re:/^(in|near|at) [a-z' ]+? (is|are) (a|an|the|two|some)\b/,note:"«в парке есть» без there: грамматически возможно, но так не говорят"},
+            {re:/\bhas (a|an|two|some)\b/,note:"the park has — верно, но без there is"}]}
+];
+
+/* ступень 2 — с подсказкой: вписать пропуск */
+const PROD=[
+ {f:"f1",pic:{t:"obj",d:"far",n:1,it:"key"},
+  ru:"Покажи на ключ вдали.",
+  s:"___ key is new.",accept:["that"],rivals:["this","these","those"]},
+ {f:"f2",pic:{t:"obj",d:"far",n:3,it:"book"},
+  ru:"Покажи на книги вдали.",
+  s:"___ books are old.",accept:["those"],rivals:["this","that","these"]},
+ {f:"f3",pic:{t:"obj",d:"near",n:3,it:"cup"},
+  ru:"Покажи на чашки рядом.",
+  s:"I like ___ cups.",accept:["these"],rivals:["this","that","those"]},
+ {f:"f4",
+  ru:"Друг ищет тебя в толпе.",
+  ctx:"— Where are you?",
+  s:"I'm over ___!",accept:["here"],rivals:["there"]},
+ {f:"f5",pic:{t:"obj",d:"far",n:1,it:"book"},
+  ru:"Друг спрашивает, где книга. Покажи на книгу вдали.",
+  ctx:"— Where is the book?",
+  s:"It's over ___.",accept:["there"],rivals:["here"]},
+ {f:"f6",
+  ru:"Ты был на Мальте и хочешь поехать туда снова.",
+  ctx:"— Malta is beautiful!",
+  s:"— Yes! I want to go ___ again.",accept:["there","back there"],arguable:["to malta","back","back to malta"],rivals:["here"],
+  calques:[{re:/^(to|in|into|at) there$/,note:"калька: «туда» с предлогом"}]},
+ {f:"f7",
+  ru:"Друг нашёл новую работу. Ты рад за него.",
+  ctx:"— I found a new job!",
+  s:"— Wow, ___ great!",accept:["that's","that is"],arguable:["it's","it is"],
+  rivals:["this is","it's","it is"],
+  calques:[{re:/^(this is|this's|this)$/,note:"калька: «это» → this"}]},
+ {f:"f8",
+  ru:"На этой неделе ты очень занят.",
+  s:"I'm very busy ___ week.",accept:["this"],rivals:["that","these","those"],
+  calques:[{re:/^(in|on|at|during) this$/,note:"калька: «на этой неделе» с предлогом"}]},
+ {f:"f9",
+  ru:"Рядом с отелем есть аптека.",
+  s:"___ a pharmacy near the hotel.",accept:["there's","there is"],
+  rivals:["it's","it is","here is","here's","this is","is"],
+  calques:[{re:/^(it's|it is|is|this is|here is|here's)$/,note:"«есть, имеется» передано без there"}]}
+];
+
+/* ступень 3 — выбор из двух; «Не знаю» тоже можно */
+const REC=[
+ {f:"f1",pic:{t:"obj",d:"far",n:1,it:"book"},ru:"Покажи на книгу вдали.",
+  opts:["This book is interesting.","That book is interesting."],a:1},
+ {f:"f2",pic:{t:"obj",d:"far",n:3,it:"key"},ru:"Покажи на ключи вдали.",
+  opts:["These keys are old.","Those keys are old."],a:1},
+ {f:"f3",pic:{t:"obj",d:"near",n:3,it:"cup"},ru:"Покажи на чашки рядом.",
+  opts:["This cups are clean.","These cups are clean."],a:1},
+ {f:"f4",ru:"Друг принёс коробку. Покажи на место рядом с собой.",
+  opts:["Put it here, please.","Put it there, please."],a:0},
+ {f:"f5",pic:{t:"obj",d:"far",n:1,it:"bag"},ru:"Друг спрашивает, где сумка. Покажи на сумку вдали.",
+  ctx:"— Where is the bag?",opts:["It's over here.","It's over there."],a:1},
+ {f:"f6",ru:"Ты рассказываешь про Крит: каждое лето ездишь туда.",
+  opts:["I go to there every summer.","I go there every summer."],a:1},
+ {f:"f7",ru:"Друг выиграл матч. Ты рад за него.",
+  ctx:"— I won the match!",opts:["This is great!","That's great!"],a:1},
+ {f:"f8",ru:"Вы с семьёй на этой неделе в отпуске.",
+  opts:["We are on holiday in this week.","We are on holiday this week."],a:1},
+ {f:"f9",ru:"Рядом с вокзалом есть банк.",
+  opts:["It is a bank near the station.","There is a bank near the station."],a:1}
+];
+
+const VERDICT={
+ ok:{cls:"v-ok",label:"в порядке"},
+ cue:{cls:"v-cue",label:"нужна опора"},
+ avoid:{cls:"v-avoid",label:"обходит"},
+ retr:{cls:"v-retr",label:"извлечение"},
+ diff:{cls:"v-diff",label:"различение"},
+ skip:{cls:"v-skip",label:"пропуск"},
+ unst:{cls:"v-unst",label:"неустойчиво"},
+ arg:{cls:"v-arg",label:"спорно — смотреть"}
+};
+const TODO={
+ cue:"С подсказкой пишет верно, сам — нет. Знание есть, но не стало автоматическим. Нужен дрилл со снятием опоры: сначала рамка, потом только ситуация.",
+ avoid:"Сам обошёл нужную форму, с подсказкой справился. Похоже, не уверен и избегает её. Давать задания, где обойти нельзя.",
+ retr:"Похоже, узнаёт, но сам не достаёт ни свободно, ни с подсказкой (выбор мог быть и угадан). Дрилл на продукцию: сначала с рамкой.",
+ diff:"Не узнаёт и не производит. Дриллить рано: сначала объяснить разницу на картинках и примерах, потом проверить узнавание ещё раз.",
+ skip:"Продукцию пропустил, а выбрал верно. Непонятно, не знал или не стал пробовать — эти развилки стоит перезадать устно.",
+ unst:"На одной ступени справился, на следующей, более лёгкой, — нет. Знание неустойчивое или ответ случайный — перепроверить парой новых примеров.",
+ arg:"Ответ не ошибочный, но и не тот, что проверялся. Решает учитель."
+};
+
+/* ================= разбор ответа ================= */
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function normAns(t){
+  return String(t||"").toLowerCase()
+    .replace(/[’‘`´]/g,"'")
+    .replace(/^[\s.,!?;:"«»—–-]+|[\s.,!?;:"«»—–-]+$/g,"")
+    .replace(/\s+/g," ")
+    .replace(/\bthats\b/g,"that's").replace(/\btheres\b/g,"there's")
+    .replace(/\bheres\b/g,"here's").replace(/\bits\b/g,"it's");
+}
+// для свободных ответов: внутренняя пунктуация не важна
+function flat(t){return normAns(t).replace(/[,.!?;:—–"«»]/g," ").replace(/\s+/g," ").trim();}
+
+// настоящие слова, похожие на мишени: их не считаю опечатками (here ≠ опечатка в there)
+const REAL=["here","there","the","they","them","then","than","this","that","these","those","three",
+  "thee","tree","where","were","with","what","hat","at","his","hers","thus","thin","thing","theme"];
+// расстояние с перестановкой соседних букв за одну ошибку: taht → that = 1
+function osa(a,b){
+  const m=a.length,n=b.length,d=[];
+  for(let i=0;i<=m;i++){d[i]=[i];}
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);
+  }
+  return d[m][n];
+}
+// ищу в предложении слово, которое на одну букву отличается от нужной формы или конкурента
+function typoScan(item,v){
+  const toks=v.split(" ").filter(function(w){return w.length>=3&&REAL.indexOf(w)<0;});
+  const near=function(list){
+    return (list||[]).filter(function(w){return toks.some(function(t){return osa(t,w)<=1;});});
+  };
+  return {t:near(item.tw),r:near(item.rw)};
+}
+// ступень 1: ok · typo · wrong · avoid · arg · skip
+function gradeFree(item,raw){
+  const v=flat(raw);
+  if(!v)return {st:"skip",v:""};
+  if(/[а-яё]/i.test(v)&&!/[a-z]/.test(v))return {st:"skip",v:v,note:"ответ не по-английски"};
+  const cq=(item.calques||[]).filter(function(c){return c.re.test(v);})[0];
+  if(cq)return {st:"wrong",v:v,calque:cq.note};
+  const hasT=item.target.test(v), hasR=!!(item.rival&&item.rival.test(v));
+  if(hasT&&hasR)return {st:"arg",v:v,note:"есть и нужная форма, и конкурирующая"};
+  if(hasT)return {st:"ok",v:v};
+  if(hasR)return {st:"wrong",v:v};
+  const ar=(item.arguable||[]).filter(function(a){return a.re.test(v);})[0];
+  if(ar)return {st:"arg",v:v,note:ar.note};
+  const ty=typoScan(item,v);
+  if(ty.t.length&&!ty.r.length)return {st:"typo",v:v,note:"похоже на опечатку в "+ty.t[0]};
+  if(ty.t.length&&ty.r.length)return {st:"arg",v:v,note:"опечатка: "+ty.t[0]+" или "+ty.r[0]+"?"};
+  if(ty.r.length)return {st:"wrong",v:v,note:"похоже на "+ty.r[0]+" с опечаткой"};
+  if(item.noPenalty)return {st:"neutral",v:v,note:"ответил без that — так говорят и носители, это не ошибка"};
+  return {st:"avoid",v:v,note:"нужной формы в предложении нет"};
+}
+
+function lev(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n; if(!n)return m;
+  let p=[],c=[];
+  for(let j=0;j<=n;j++)p[j]=j;
+  for(let i=1;i<=m;i++){
+    c=[i];
+    for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));
+    p=c;
+  }
+  return p[n];
+}
+// если вписана вся фраза или её кусок, а не только пропуск, срезаю известную рамку
+function stripFrame(item,v){
+  const parts=item.s.split("___").map(flat);
+  const pre=parts[0]?parts[0].split(" "):[], post=parts[1]?parts[1].split(" "):[];
+  let out=flat(v);
+  for(let n=pre.length;n>=1;n--){
+    const w=pre.slice(-n).join(" ");
+    if(out.indexOf(w+" ")===0){out=out.slice(w.length+1);break;}
+  }
+  for(let n=post.length;n>=1;n--){
+    const w=post.slice(0,n).join(" ");
+    if(out.length>w.length&&out.slice(-w.length-1)===" "+w){out=out.slice(0,out.length-w.length-1);break;}
+  }
+  return out.trim();
+}
+// ступень 2: ok · typo · arg · wrong · skip
+function gradeProd(item,raw){
+  const v=stripFrame(item,normAns(raw));
+  if(!v)return {st:"skip",v:""};
+  if(item.accept.indexOf(v)>=0)return {st:"ok",v:v};
+  if(item.arguable&&item.arguable.indexOf(v)>=0)return {st:"arg",v:v};
+  const cq=(item.calques||[]).filter(function(c){return c.re.test(v);})[0];
+  if(cq)return {st:"wrong",v:v,calque:cq.note};
+  const rivals=item.rivals||[];
+  if(rivals.indexOf(v)>=0)return {st:"wrong",v:v};
+  if(v.length>=3){
+    const pool=item.accept.concat(rivals);
+    let best=99,hits=[];
+    pool.forEach(function(w){
+      const d=lev(v,w);
+      if(d<best){best=d;hits=[w];}
+      else if(d===best)hits.push(w);
+    });
+    const allRight=hits.every(function(w){return item.accept.indexOf(w)>=0;});
+    if(best<=1&&allRight)return {st:"typo",v:v};
+    const anyRight=hits.some(function(w){return item.accept.indexOf(w)>=0;});
+    if(best<=1&&anyRight){
+      const cut=item.accept.some(function(w){return w.length>v.length&&w.indexOf(v)===0;});
+      if(cut)return {st:"typo",v:v};
+      return {st:"arg",v:v,note:"опечатка или другое слово?"};
+    }
+  }
+  return {st:"wrong",v:v};
+}
+
+/* итог по лесенке: сам → с подсказкой → выбор */
+function verdict(F,P,R){
+  if(F.st==="arg"||P.st==="arg")return "arg";
+  const fOk=(F.st==="ok"||F.st==="typo"), pOk=(P.st==="ok"||P.st==="typo");
+  if(F.st==="neutral"){                     // по части 1 данных нет — смотрю только на 2 и 3
+    if(pOk&&R.ok)return "ok";
+    if(pOk)return "unst";
+    if(P.st==="skip"&&R.ok)return "skip";
+    if(R.ok)return "retr";
+    return "diff";
+  }
+  if(fOk&&pOk&&R.ok)return "ok";
+  if(fOk)return "unst";                     // сам смог, а на более лёгкой ступени сбился
+  if(pOk&&!R.ok)return "unst";
+  if(pOk&&F.st==="avoid")return "avoid";    // с подсказкой может, сам избегает
+  if(pOk)return "cue";                      // с подсказкой может, сам — нет
+  if(R.ok&&P.st==="skip"&&F.st!=="wrong")return "skip";
+  if(R.ok)return "retr";
+  return "diff";
+}
+
+/* ================= картинки ================= */
+function icon(it,x,y){
+  if(it==="cup")return '<rect class="itm" x="'+(x-8)+'" y="'+(y-9)+'" width="16" height="18" rx="2"/>'+
+    '<path class="itm" style="fill:none" d="M'+(x+8)+' '+(y-4)+' q7 0 7 5 q0 5 -7 5"/>';
+  if(it==="book")return '<rect class="itm" x="'+(x-9)+'" y="'+(y-11)+'" width="18" height="22" rx="2"/>'+
+    '<line class="itm" x1="'+(x-5)+'" y1="'+(y-11)+'" x2="'+(x-5)+'" y2="'+(y+11)+'"/>';
+  if(it==="door")return '<rect class="itm" x="'+(x-11)+'" y="'+(y-22)+'" width="22" height="34" rx="2"/>'+
+    '<circle cx="'+(x+5)+'" cy="'+(y-4)+'" r="2" fill="#1F4E8C"/>';
+  if(it==="key")return '<circle class="itm" cx="'+(x-6)+'" cy="'+y+'" r="6"/>'+
+    '<path class="itm" style="fill:none" d="M'+x+' '+y+' h13 M'+(x+9)+' '+y+' v5 M'+(x+13)+' '+y+' v4"/>';
+  return '<rect class="itm" x="'+(x-11)+'" y="'+(y-7)+'" width="22" height="17" rx="3"/>'+
+    '<path class="itm" style="fill:none" d="M'+(x-5)+' '+(y-7)+' q5 -10 10 0"/>';
+}
+function person(x,label,pointRight){
+  let s='<circle class="head" cx="'+x+'" cy="34" r="11"/>'+
+    '<path class="fig" d="M'+x+' 45 V82 M'+x+' 82 L'+(x-10)+' 104 M'+x+' 82 L'+(x+10)+' 104"/>';
+  if(pointRight)s+='<path class="fig" d="M'+x+' 56 L'+(x+26)+' 50 M'+x+' 58 L'+(x-14)+' 70"/>';
+  else s+='<path class="fig" d="M'+x+' 56 L'+(x-24)+' 46 M'+x+' 58 L'+(x+14)+' 70"/>';
+  return s+'<text class="lbl" x="'+x+'" y="122" text-anchor="middle">'+label+'</text>';
+}
+function scene(p){
+  if(!p)return "";
+  let svg,cap;
+  const what={cup:["чашка","чашки"],book:["книга","книги"],key:["ключ","ключи"],bag:["сумка","сумки"],door:["выход","выходы"]}[p.it];
+  if(p.t==="both"){
+    // две группы: нужная яркая, другая бледная; рука и пунктир — к нужной
+    const nearX=[], farX=[], g=p.it==="key"?38:26;
+    for(let i=0;i<p.nn;i++)nearX.push(96+i*g);
+    for(let i=0;i<p.nf;i++)farX.push(250+i*g);
+    const grp=function(xs,on){return '<g'+(on?'':' opacity=".35"')+'>'+xs.map(function(x){return icon(p.it,x,80);}).join("")+'</g>';};
+    const toFar=p.pick==="far";
+    svg=person(40,"ты",true)+
+      (toFar?'<path class="dash" d="M72 50 C150 26 200 36 '+(farX[0]-18)+' 66"/>':'<path class="dash" d="M72 52 Q84 58 '+(nearX[0]-12)+' 70"/>')+
+      grp(nearX,!toFar)+grp(farX,toFar)+
+      '<text class="lbl" x="'+(nearX[0]+(p.nn-1)*g/2)+'" y="122" text-anchor="middle">рядом</text>'+
+      '<text class="lbl" x="'+(farX[0]+(p.nf-1)*g/2)+'" y="122" text-anchor="middle">далеко</text>';
+    cap=what[1].charAt(0).toUpperCase()+what[1].slice(1)+" и рядом, и далеко. Ты показываешь на "+(toFar?"дальние":"те, что рядом")+".";
+  }
+  else if(p.t==="call"){
+    svg=person(48,"ты",false)+person(280,"друг",false)+
+      '<path class="dash" d="M78 66 H250"/>'+
+      '<path class="arw" d="M244 92 H96 M96 92 l10 -6 M96 92 l10 6"/>';
+    cap="Друг далеко. Нужно, чтобы он подошёл к тебе.";
+  }else{
+    const far=p.d==="far";
+    const base=far?248:104, xs=[];
+    const gapX=p.it==="key"?38:26;
+    for(let i=0;i<p.n;i++)xs.push(base+i*gapX);
+    svg=person(48,"ты",true)+
+      (far?'<path class="dash" d="M80 50 C150 30 200 40 '+(base-18)+' 66"/>':"")+
+      xs.map(function(x){return icon(p.it,x,80);}).join("")+
+      '<text class="lbl" x="'+(base+(p.n-1)*gapX/2)+'" y="122" text-anchor="middle">'+(far?"далеко":"рядом")+'</text>';
+    const where=(far?"далеко от тебя":"рядом с тобой");
+    cap=p.it==="door"?"Выход — "+where+".":(p.n>1?"Несколько: "+what[1]:"Одна вещь: "+what[0])+" — "+where+".";
+  }
+  return '<div class="pic"><svg viewBox="0 0 340 130" role="img" aria-label="'+esc(cap)+'">'+svg+'</svg>'+
+    '</div>';
+}
+function sentHTML(s){
+  const parts=s.split("___");
+  return '<span lang="en">'+esc(parts[0])+'</span><span class="gap" aria-label="пропуск">&nbsp;</span><span lang="en">'+esc(parts[1]||"")+'</span>';
+}
+
+/* ================= состояние ================= */
+const app=document.getElementById("app"), live=document.getElementById("live");
+const now=function(){const pf=window.performance;return (pf&&pf.now)?pf.now():Date.now();};
+const GUARD_MS=350; // столько после смены экрана клики и Enter игнорируются: защита от двойного тапа
+let S, shownAt=0;
+/* прогресс и попытки хранятся в браузере ученика: вкладку можно закрыть и вернуться */
+const KEY="htd-demo-v1";
+function ls(){try{return window.localStorage||null;}catch(e){return null;}}
+function loadSaved(){try{const l=ls();return l?(JSON.parse(l.getItem(KEY)||"{}")||{}):{};}catch(e){return {};}}
+function writeSaved(){try{const l=ls();if(l)l.setItem(KEY,JSON.stringify(SAVED));}catch(e){}}
+let SAVED=loadSaved();
+const LIVE=["free","mid1","prod","mid2","rec"];
+function persist(){
+  if(S.teacher)return;
+  if(LIVE.indexOf(S.phase)>=0){
+    SAVED.cur={phase:S.phase,i:S.i,free:S.free,prod:S.prod,rec:S.rec,
+      order:S.order,attempt:S.attempt,date:S.date,seen:S.seen};
+  }else if(S.phase==="report"){
+    SAVED.cur=null;       // законченную попытку больше не продолжаем
+  }else return;          // вступление, «не закончен», вставка кода — сохранённое не трогаю
+  writeSaved();
+}
+function reset(){
+  S={phase:"intro",i:0,free:[],prod:[],rec:[],order:[],t0:0,attempt:0,seen:false,
+     date:localDate(),teacher:false,fx:{}};
+  if(SAVED.cur&&LIVE.indexOf(SAVED.cur.phase)>=0)S.phase="resume";
+}
+function localDate(){
+  const d=new Date(),p=function(n){return (n<10?"0":"")+n;};
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+}
+function shuffle(a){
+  const x=a.slice();
+  for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=x[i];x[i]=x[j];x[j]=t;}
+  return x;
+}
+
+/* ================= экраны ================= */
+function stageHTML(label,i,total){
+  return '<div class="stage"><span class="part">'+label+'</span>'+
+    '<span class="num">Задание '+(i+1)+' из '+total+'</span></div>'+
+    '<div class="bar" aria-hidden="true"><i style="width:'+Math.round(i/total*100)+'%"></i></div>';
+}
+function situationHTML(it){
+  return '<p class="ru">'+esc(it.ru)+'</p>'+scene(it.pic)+
+    (it.ctx?'<div class="ctx" lang="en">'+esc(it.ctx)+'</div>':"");
+}
+function render(){
+  if(S.phase==="intro"){
+    app.innerHTML='<section class="card">'+
+      '<h2 tabindex="-1" id="h">Где именно не получается</h2>'+
+      '<p>Это не экзамен. Правильные ответы по ходу не показываются, ничего не повторяется. Задача — понять, что именно чинить.</p>'+
+      '<ol class="steps">'+
+        '<li><b>1</b><span><b style="font-family:inherit;color:inherit">Сам.</b> 9 ситуаций — пишешь всё предложение по-английски.</span></li>'+
+        '<li><b>2</b><span><b style="font-family:inherit;color:inherit">С подсказкой.</b> 9 предложений с пропуском — вписываешь одно-два слова.</span></li>'+
+        '<li><b>3</b><span><b style="font-family:inherit;color:inherit">Выбор.</b> 9 заданий — выбираешь из двух вариантов.</span></li>'+
+      '</ol>'+
+      '<p>Порядок именно такой: от трудного к лёгкому, чтобы подсказки не выдали ответы раньше времени.</p>'+
+      '<p class="muted">Не знаешь — нажми «Не знаю». Это тоже полезный результат, гадать не нужно. Займёт минут пятнадцать.</p>'+
+      '<div class="row-btns"><button class="btn" data-act="start">Начать</button></div>'+
+      (SAVED.last?'<button class="linkish" data-act="last">Открыть мой последний результат</button><br>':"")+
+      '<button class="linkish" data-act="teacher">Я учитель: открыть результат ученика</button></section>';
+  }
+  else if(S.phase==="resume"){
+    const c=SAVED.cur, part={free:"1",mid1:"2",prod:"2",mid2:"3",rec:"3"}[c.phase];
+    const n=(c.phase==="mid1"||c.phase==="mid2")?1:c.i+1;
+    app.innerHTML='<section class="card">'+
+      '<h2 tabindex="-1" id="h">Замер не закончен</h2>'+
+      '<p>Ты остановился на части '+part+', задании '+n+'. Ответы до этого места сохранены.</p>'+
+      '<div class="row-btns"><button class="btn" data-act="resume">Продолжить</button>'+
+      '<button class="btn ghost" data-act="discard">Начать заново</button></div></section>';
+  }
+  else if(S.phase==="free"){
+    const it=FREE[S.i];
+    app.innerHTML='<section class="card">'+stageHTML("Часть 1 · сам",S.i,FREE.length)+
+      '<h2 class="sr" tabindex="-1" id="h">Задание '+(S.i+1)+'</h2>'+
+      situationHTML(it)+
+      '<div class="answer"><label class="sr" for="inp">Твоё предложение по-английски</label>'+
+      '<input id="inp" class="long" lang="en" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" placeholder="Предложение по-английски">'+
+      '<button class="btn" data-act="next">Дальше</button>'+
+      '<button class="btn quiet" data-act="skip">Не знаю</button></div>'+
+      '<p class="hint">Одно предложение. Как сказал бы сам.</p></section>';
+  }
+  else if(S.phase==="mid1"){
+    app.innerHTML='<section class="card">'+
+      '<h2 tabindex="-1" id="h">Часть 1 готова</h2>'+
+      '<p>Теперь 9 предложений с пропуском. Впиши только то, что пропущено. Не знаешь — «Не знаю».</p>'+
+      '<div class="row-btns"><button class="btn" data-act="cont1">Дальше</button></div></section>';
+  }
+  else if(S.phase==="prod"){
+    const it=PROD[S.i];
+    app.innerHTML='<section class="card">'+stageHTML("Часть 2 · с подсказкой",S.i,PROD.length)+
+      '<h2 class="sr" tabindex="-1" id="h">Задание '+(S.i+1)+'</h2>'+
+      situationHTML(it)+
+      '<div class="sent">'+sentHTML(it.s)+'</div>'+
+      '<div class="answer"><label class="sr" for="inp">Пропущенное слово по-английски</label>'+
+      '<input id="inp" lang="en" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="одно-два слова">'+
+      '<button class="btn" data-act="next">Дальше</button></div>'+
+      '<div class="row-btns"><button class="btn quiet" data-act="skip">Не знаю</button></div>'+
+      '<p class="hint">Впиши только то, что пропущено.</p></section>';
+  }
+  else if(S.phase==="mid2"){
+    app.innerHTML='<section class="card">'+
+      '<h2 tabindex="-1" id="h">Часть 2 готова</h2>'+
+      '<p>Последние 9 заданий: нажми на вариант, который сказал бы сам. Если не уверен — «Не знаю», не гадай.</p>'+
+      '<div class="row-btns"><button class="btn" data-act="cont2">Дальше</button></div></section>';
+  }
+  else if(S.phase==="rec"){
+    const it=REC[S.i], ord=S.order[S.i];
+    app.innerHTML='<section class="card">'+stageHTML("Часть 3 · выбор",S.i,REC.length)+
+      '<h2 class="sr" tabindex="-1" id="h">Задание '+(S.i+1)+'</h2>'+
+      situationHTML(it)+
+      '<div class="opts">'+ord.map(function(k){
+        return '<button class="opt" lang="en" data-act="pick" data-i="'+k+'">'+esc(it.opts[k])+'</button>';
+      }).join("")+'</div>'+
+      '<div class="row-btns"><button class="btn quiet" data-act="pick" data-i="-1">Не знаю</button></div></section>';
+  }
+  else if(S.phase==="paste"){
+    app.innerHTML='<section class="card">'+
+      '<h2 tabindex="-1" id="h">Результат ученика</h2>'+
+      '<p>Вставь сюда то, что прислал ученик после кнопки «Скопировать результат». Достаточно строки с кодом, но можно и весь текст.</p>'+
+      '<label class="sr" for="pasteArea">Результат ученика</label>'+
+      '<textarea id="pasteArea" spellcheck="false"></textarea>'+
+      '<p class="hint" id="pasteMsg" role="status"></p>'+
+      '<div class="row-btns"><button class="btn" data-act="open">Открыть</button>'+
+      '<button class="btn ghost" data-act="restart">Назад</button></div></section>';
+  }
+  else if(S.phase==="report"){
+    if(!S.teacher&&!S.recorded){
+      S.recorded=true;
+      SAVED.finished=(SAVED.finished||0)+1;
+      SAVED.last=encodeResult();
+    }
+    app.innerHTML=reportHTML();
+  }
+  const h=document.getElementById("h"); if(h&&h.focus)h.focus();
+  const inp=document.getElementById("inp"); if(inp&&inp.focus)inp.focus();
+  shownAt=now();
+  persist();
+  announce();
+}
+function announce(){
+  const map={free:["Часть 1",FREE.length],prod:["Часть 2",PROD.length],rec:["Часть 3",REC.length]};
+  const m=map[S.phase];
+  if(m)live.textContent=m[0]+", задание "+(S.i+1)+" из "+m[1];
+  else if(S.phase==="report")live.textContent="Замер окончен. Отчёт на экране.";
+  else live.textContent="";
+}
+
+/* ================= действия ================= */
+function saveText(raw){
+  const sec=Math.round((now()-S.t0)/1000);
+  if(S.phase==="free"){
+    S.free[S.i]={raw:String(raw||""),sec:sec};
+    S.i++;
+    if(S.i>=FREE.length)S.phase="mid1";
+  }else if(S.phase==="prod"){
+    S.prod[S.i]={raw:String(raw||""),sec:sec};
+    S.i++;
+    if(S.i>=PROD.length)S.phase="mid2";
+  }
+  S.t0=now();
+  render();
+}
+const ACTIONS={
+  start:function(){
+    SAVED.attempts=(SAVED.attempts||0)+1;
+    S.attempt=SAVED.attempts; S.seen=(SAVED.finished||0)>0; S.date=localDate();
+    S.phase="free";S.i=0;S.t0=now();render();
+  },
+  resume:function(){
+    S=Object.assign({},S,SAVED.cur,{teacher:false,fx:{},t0:now()});
+    render();
+  },
+  discard:function(){SAVED.cur=null;writeSaved();reset();render();},
+  last:function(){
+    const d=decodeResult(SAVED.last||"");
+    if(!d)return;
+    S=Object.assign({},d,{phase:"report",teacher:false,recorded:true});
+    render();
+  },
+  next:function(){const inp=document.getElementById("inp");saveText(inp?inp.value:"");},
+  skip:function(){saveText("");},
+  cont1:function(){S.phase="prod";S.i=0;S.t0=now();render();},
+  cont2:function(){
+    S.phase="rec";S.i=0;
+    S.order=REC.map(function(r){return shuffle(r.opts.map(function(_,k){return k;}));});
+    S.t0=now();render();
+  },
+  pick:function(el){
+    const k=parseInt(el.getAttribute("data-i"),10);
+    S.rec[S.i]={k:k,sec:Math.round((now()-S.t0)/1000)};
+    S.i++;
+    if(S.i>=REC.length)S.phase="report";
+    S.t0=now();render();
+  },
+  teacher:function(){S.phase="paste";render();},
+  open:function(){
+    const ta=document.getElementById("pasteArea"), msg=document.getElementById("pasteMsg");
+    const data=decodeResult(ta?ta.value:"");
+    if(!data){msg.textContent="Код не найден или повреждён. Проверь, что скопирована строка, начинающаяся с HTD1.";return;}
+    S=Object.assign({},data,{phase:"report",teacher:true});
+    render();
+  },
+  mark:function(el){
+    // учитель переключает оценку свободного ответа: ✓ → × → обошёл → снова авто
+    const id=el.getAttribute("data-f");
+    const cycle=id.indexOf("p:")===0?[undefined,"ok","wrong"]:[undefined,"ok","wrong","avoid"];
+    const cur=S.fx[id];
+    S.fx[id]=cycle[(cycle.indexOf(cur)+1)%cycle.length];
+    if(S.fx[id]===undefined)delete S.fx[id];
+    const y=window.scrollY||0;
+    render();
+    try{window.scrollTo(0,y);}catch(e){}
+    const b=document.querySelector?document.querySelector('[data-act="mark"][data-f="'+id+'"]'):null;
+    if(b&&b.focus)b.focus();
+  },
+  copy:function(){
+    const txt=reportText(), ta=document.getElementById("copyArea"), msg=document.getElementById("copyMsg");
+    let done=false;
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(function(){msg.textContent="Скопировано. Отправь это учителю.";},
+          function(){showArea();});
+        done=true;
+      }
+    }catch(e){done=false;}
+    if(!done)showArea();
+    function showArea(){
+      ta.hidden=false; ta.value=txt;
+      try{ta.focus();ta.select();}catch(e){}
+      msg.textContent="Скопировать автоматически не вышло — текст выделен ниже, скопируй вручную.";
+    }
+  },
+  restart:function(){reset();render();}  // законченная попытка уже записана, начатую сбрасывать не нужно
+};
+app.addEventListener("click",function(e){
+  const el=e.target.closest?e.target.closest("[data-act]"):null;
+  if(!el)return;
+  const act=el.getAttribute("data-act");
+  if((act==="next"||act==="skip"||act==="pick")&&now()-shownAt<GUARD_MS)return;
+  const fn=ACTIONS[act];
+  if(fn)fn(el);
+});
+app.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&e.target&&e.target.id==="inp"){
+    e.preventDefault();
+    if(e.repeat||now()-shownAt<GUARD_MS)return;
+    ACTIONS.next();
+  }
+});
+
+/* ================= код результата =================
+   В код кладутся сырые ответы, а не оценки: у учителя они проверяются заново. */
+function toB64(str){
+  try{
+    if(window.TextEncoder){
+      const bytes=new TextEncoder().encode(str); let bin="";
+      for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+  }catch(e){}
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function fromB64(b){
+  const bin=atob(b);
+  try{
+    if(window.TextDecoder){
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+  }catch(e){}
+  return decodeURIComponent(escape(bin));
+}
+function encodeResult(){
+  return "HTD1."+toB64(JSON.stringify({v:1,a:S.attempt,d:S.date,K:S.seen?1:0,
+    F:S.free.map(function(x){return [x.raw,x.sec];}),
+    P:S.prod.map(function(x){return [x.raw,x.sec];}),
+    R:S.rec.map(function(x){return [x.k,x.sec];}),
+    X:S.fx||{}}))+".HTD";
+}
+function cleanFx(x){
+  const out={};
+  if(x&&typeof x==="object")Object.keys(x).forEach(function(k){
+    if(/^f[1-9]$/.test(k)&&["ok","wrong","avoid"].indexOf(x[k])>=0)out[k]=x[k];
+    if(/^p:f[1-9]$/.test(k)&&["ok","wrong"].indexOf(x[k])>=0)out[k]=x[k];
+  });
+  return out;
+}
+function decodeResult(text){
+  // мессенджер может разбить длинную строку переносом: пробелы внутри кода выбрасываю
+  const t=String(text||"");
+  let m=t.match(/HTD1\.([A-Za-z0-9+\/=\s]+?)\.HTD/);
+  if(!m)m=t.match(/HTD1\.([A-Za-z0-9+\/=]+)/);
+  if(!m)return null;
+  try{
+    const o=JSON.parse(fromB64(m[1].replace(/\s+/g,"")));
+    if(!o||o.v!==1||!o.F||!o.P||!o.R)return null;
+    if(o.F.length!==FREE.length||o.P.length!==PROD.length||o.R.length!==REC.length)return null;
+    return {attempt:o.a,date:o.d,seen:o.K===1||(o.K===undefined&&o.a>1),
+      free:o.F.map(function(x){return {raw:String(x[0]),sec:+x[1]||0};}),
+      prod:o.P.map(function(x){return {raw:String(x[0]),sec:+x[1]||0};}),
+      rec:o.R.map(function(x){return {k:parseInt(x[0],10),sec:+x[1]||0};}),
+      fx:cleanFx(o.X),i:0,order:[],t0:0};
+  }catch(e){return null;}
+}
+
+/* ================= отчёт ================= */
+const SYM={ok:"✓",typo:"✓~",arg:"≈",wrong:"×",skip:"—",avoid:"↷",neutral:"○"};
+function rows(){
+  return FORKS.map(function(f){
+    const fi=FREE.findIndex(function(x){return x.f===f.id;});
+    const pi=PROD.findIndex(function(x){return x.f===f.id;});
+    const ri=REC.findIndex(function(x){return x.f===f.id;});
+    const Fa=gradeFree(FREE[fi],S.free[fi].raw);
+    const ov=S.fx[f.id];
+    const F=ov?Object.assign({},Fa,{st:ov,byTeacher:true}):Fa;
+    const Pa=gradeProd(PROD[pi],S.prod[pi].raw);
+    const pov=S.fx["p:"+f.id];
+    const P=pov?Object.assign({},Pa,{st:pov,byTeacher:true}):Pa;
+    const rr=S.rec[ri], R={k:rr.k,dk:rr.k<0,ok:rr.k===REC[ri].a};
+    return {f:f,F:F,Fauto:Fa,P:P,Pauto:Pa,R:R,fsec:S.free[fi].sec,raw:S.free[fi].raw,
+      fItem:FREE[fi],pItem:PROD[pi],rItem:REC[ri],v:verdict(F,P,R)};
+  });
+}
+function markCell(x,which){
+  const g=which==="p"?x.P:x.F, id=which==="p"?"p:"+x.f.id:x.f.id;
+  if(!S.teacher)return SYM[g.st];
+  const what=which==="p"?"ответа с подсказкой":"свободного ответа";
+  return '<button class="mk'+(g.byTeacher?" set":"")+'" data-act="mark" data-f="'+id+'" '+
+    'aria-label="Оценка '+what+': '+esc(markName(g.st))+(g.byTeacher?", поставлена учителем":", автоматическая")+'. Нажми, чтобы изменить">'+SYM[g.st]+'</button>';
+}
+function markName(st){return {ok:"верно",typo:"верно с опечаткой",wrong:"ошибка",avoid:"обошёл",arg:"спорно",skip:"пропуск",neutral:"без that, не ошибка"}[st]||st;}
+// экран ученика: без диагнозов и пояснений для учителя
+function studentDoneHTML(){
+  const R=rows();
+  const keys='<details><summary>Правильные ответы</summary><ol class="keys">'+
+    R.map(function(x){
+      let full=x.pItem.s.replace("___",x.pItem.accept[0]).replace(/^[—–-]\s*/,"");
+      full=full.charAt(0).toUpperCase()+full.slice(1);
+      return '<li><span lang="en">'+esc(x.fItem.model)+'</span> · <span lang="en">'+esc(full)+'</span> · <span lang="en">'+esc(x.rItem.opts[x.rItem.a])+'</span></li>';
+    }).join("")+'</ol></details>';
+  return '<section class="card"><h2 tabindex="-1" id="h">Готово!</h2>'+
+    '<p>Спасибо. Теперь нажми «Скопировать результат» и пришли его учителю.</p>'+
+    '<div class="row-btns"><button class="btn" data-act="copy">Скопировать результат</button></div>'+
+    '<p class="hint" id="copyMsg" role="status"></p>'+
+    '<textarea id="copyArea" hidden aria-label="Результат текстом"></textarea>'+
+    keys+
+    '<div class="row-btns"><button class="btn ghost" data-act="restart">Пройти заново</button></div>'+
+  '</section>';
+}
+function reportHTML(){
+  if(!S.teacher)return studentDoneHTML();
+  const R=rows();
+  const count={};
+  R.forEach(function(x){count[x.v]=(count[x.v]||0)+1;});
+  const order=["ok","cue","avoid","retr","diff","skip","unst","arg"];
+  const sum=order.filter(function(k){return count[k];}).map(function(k){
+    return '<span class="chip '+VERDICT[k].cls+'">'+VERDICT[k].label+' · '+count[k]+'</span>';}).join("");
+
+  const table='<div class="tablewrap"><table><thead><tr><th>Развилка</th><th>Сам</th><th>Подск.</th><th>Выбор</th><th class="vc">Вывод</th></tr></thead><tbody>'+
+    R.map(function(x){
+      const free=x.F.st==="skip"&&!x.raw.trim()?'<div class="typed">(пропущено)</div>':
+        '<div class="free" lang="en">'+esc(x.raw.trim()||"(пусто)")+'</div>';
+      const slow=x.fsec>90;
+      const notes=[];
+      if(x.Fauto.calque)notes.push('<div class="cq">'+esc(x.Fauto.calque)+'</div>');
+      if(x.Fauto.note&&!x.F.byTeacher)notes.push('<div class="note">'+esc(x.Fauto.note)+'</div>');
+      if(x.F.byTeacher)notes.push('<div class="note">оценка учителя (авто: '+esc(markName(x.Fauto.st))+')</div>');
+      notes.push('<div class="note">'+(slow?'<span class="slow">'+x.fsec+' с</span>':x.fsec+' с')+'</div>');
+      const ptyped=x.P.st==="skip"?"(пропущено)":x.P.v;
+      return '<tr><td><div class="nm">'+esc(x.f.name)+' <span class="note" style="font-weight:400">· '+esc(x.f.sub)+'</span></div>'+
+        free+notes.join("")+
+        '<div class="typed">подсказка: <span lang="en">'+esc(ptyped)+'</span></div>'+
+        (x.Pauto.calque?'<div class="cq">'+esc(x.Pauto.calque)+'</div>':"")+
+        (x.P.byTeacher?'<div class="note">подсказка: оценка учителя (авто: '+esc(markName(x.Pauto.st))+')</div>':
+          (x.Pauto.note?'<div class="note">'+esc(x.Pauto.note)+'</div>':""))+
+        '<div class="vm"><span class="chip '+VERDICT[x.v].cls+'">'+VERDICT[x.v].label+'</span></div></td>'+
+        '<td class="c">'+markCell(x,"f")+'</td>'+
+        '<td class="c">'+markCell(x,"p")+'</td>'+
+        '<td class="c">'+(x.R.dk?"—":(x.R.ok?"✓":"×"))+'</td>'+
+        '<td class="vc"><span class="chip '+VERDICT[x.v].cls+'">'+VERDICT[x.v].label+'</span></td></tr>';
+    }).join("")+'</tbody></table></div>';
+
+  const todo=["cue","avoid","retr","diff","skip","unst","arg"].filter(function(k){return count[k];}).map(function(k){
+    const names=R.filter(function(x){return x.v===k;}).map(function(x){return x.f.name;}).join(", ");
+    return '<h3>'+VERDICT[k].label+': '+esc(names)+'</h3><p>'+TODO[k]+'</p>';
+  }).join("");
+
+  const keys='<details><summary>Эталоны и правильные ответы</summary><ol class="keys">'+
+    R.map(function(x){
+      let full=x.pItem.s.replace("___",x.pItem.accept[0]).replace(/^[—–-]\s*/,"");
+      full=full.charAt(0).toUpperCase()+full.slice(1);
+      return '<li><b>'+esc(x.f.name)+'.</b> Сам: <span lang="en">'+esc(x.fItem.model)+'</span> · '+
+        'подсказка: <span lang="en">'+esc(full)+'</span> · выбор: <span lang="en">'+esc(x.rItem.opts[x.rItem.a])+'</span></li>';
+    }).join("")+'</ol></details>';
+
+  const head=S.teacher
+    ?'<p class="tmode">Режим учителя · дата '+esc(S.date)+' · попытка '+S.attempt+'. Оценки в колонках «Сам» и «Подск.» можно поменять нажатием: ✓ → × → ↷ (только «Сам») → снова автоматическая. Вывод пересчитается.</p>'
+    :"";
+  const warn=S.seen?'<p class="warn">Попытка '+S.attempt+'. Ключи одной из прошлых попыток уже были видны — для диагностики считать первую законченную.</p>':"";
+
+  return '<section class="card"><h2 tabindex="-1" id="h">Результат замера</h2>'+head+warn+
+    '<div class="sum">'+sum+'</div>'+table+
+    '<div class="todo">'+todo+'</div>'+
+    '<div class="legend">'+
+      '<p><b>Сам · Подск. · Выбор</b> — три ступени, от самой трудной к самой лёгкой. <b>✓</b> верно, <b>✓~</b> верно с опечаткой, <b>×</b> ошибка, <b>↷</b> обошёл нужную форму, <b>○</b> ответил естественно без проверяемой формы — данных нет, вывод по двум другим ступеням, <b>≈</b> спорно, <b>—</b> пропуск или «Не знаю».</p>'+
+      '<p><b>Свободные ответы оценены автоматически только по развилке</b>: есть ли нужная форма и нет ли конкурента или кальки. Остальные ошибки в предложении программа не оценивает — смотри текст сам.</p>'+
+      '<p><b>Секунды</b> — время на свободный ответ, включая чтение условия. Больше 90 выделено.</p>'+
+      '<p><b>Насколько этому верить.</b> На развилку по одному заданию на каждой ступени, а при выборе из двух можно угадать в половине случаев. Поэтому «извлечение» и «неустойчиво» — гипотезы: проверь их устно парой новых примеров.</p>'+
+    '</div>'+
+    keys+
+    '<div class="row-btns"><button class="btn" data-act="copy">Скопировать результат</button>'+
+    '<button class="btn ghost" data-act="restart">'+(S.teacher?"Выйти":"Пройти заново")+'</button></div>'+
+    '<p class="hint" id="copyMsg" role="status"></p>'+
+    '<textarea id="copyArea" hidden aria-label="Результат текстом"></textarea>'+
+  '</section>';
+}
+function reportText(){
+  const R=rows();
+  const lines=["Замер: this / that / here / there",
+    "Дата: "+S.date+" · попытка "+S.attempt+(S.seen?" (повторная — ключи уже были видны)":"")+
+    (S.teacher?" · проверено учителем":""),""];
+  R.forEach(function(x){
+    lines.push(x.f.name+" — "+VERDICT[x.v].label);
+    lines.push("  сам: «"+(x.raw.trim()||"—")+"» "+SYM[x.F.st]+(x.F.byTeacher?" (учитель)":"")+
+      (x.Fauto.calque?" ["+x.Fauto.calque+"]":"")+", "+x.fsec+" с");
+    lines.push("  подсказка: «"+(x.Pauto.v||"—")+"» "+SYM[x.P.st]+(x.P.byTeacher?" (учитель)":"")+(x.Pauto.calque?" ["+x.Pauto.calque+"]":""));
+    lines.push("  выбор: "+(x.R.dk?"не знаю":(x.R.ok?"✓":"×")));
+  });
+  lines.push("","Код для учителя:",encodeResult());
+  return lines.join("\n");
+}
+
+reset(); render();
+</script>
+</body>
+</html>
